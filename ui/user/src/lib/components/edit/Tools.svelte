@@ -1,8 +1,9 @@
 <script lang="ts">
-	import CollapsePane from '$lib/components/edit/CollapsePane.svelte';
-	import { Plus, X } from 'lucide-svelte/icons';
-	import { type AssistantTool } from '$lib/services';
 	import { popover } from '$lib/actions';
+	import CollapsePane from '$lib/components/edit/CollapsePane.svelte';
+	import { isCapabilityTool } from '$lib/model/tools';
+	import { type AssistantTool } from '$lib/services';
+	import { Plus, X } from 'lucide-svelte/icons';
 	import { fade } from 'svelte/transition';
 
 	interface Props {
@@ -11,6 +12,7 @@
 	}
 
 	let { tools, onNewTools }: Props = $props();
+	let fixedList = $derived(tools.filter((t) => t.builtin && !isCapabilityTool(t.id)));
 	let enabledList = $derived(tools.filter((t) => !t.builtin && t.enabled));
 	let disabledList = $derived(tools.filter((t) => !t.builtin && !t.enabled));
 	let { ref, tooltip, toggle } = popover();
@@ -35,11 +37,11 @@
 	}
 </script>
 
-{#snippet toolList(tools: AssistantTool[], remove: boolean, bg: string)}
+{#snippet toolList(tools: AssistantTool[], action: 'remove' | 'add' | 'fixed')}
 	<ul class="flex flex-col gap-2">
 		{#each tools as tool}
 			{#key tool.id}
-				<div class="flex items-center justify-between gap-1 {bg} rounded-3xl px-5 py-4">
+				<div class="flex items-center justify-between gap-1 rounded-3xl px-5 py-4">
 					<div class="flex flex-col gap-1">
 						<div class="flex items-center gap-2">
 							{#if tool.icon}
@@ -53,11 +55,16 @@
 						</div>
 						<span class="text-xs">{tool.description}</span>
 					</div>
-					<button class="icon-button" onclick={() => modify(tool, remove)}>
-						{#if remove}
-							<X class="h-5 w-5" />
+					<button
+						class="icon-button"
+						class:invisible={action === 'fixed'}
+						onclick={() => modify(tool, action === 'remove')}
+						disabled={action === 'fixed'}
+					>
+						{#if action === 'remove'}
+							<X class="size-5" />
 						{:else}
-							<Plus class="h-5 w-5" />
+							<Plus class="size-5" />
 						{/if}
 					</button>
 				</div>
@@ -69,7 +76,8 @@
 <CollapsePane header="Tools">
 	<div class="flex flex-col gap-2">
 		<ul class="flex flex-col gap-2">
-			{@render toolList(enabledList, true, 'bg-surface2')}
+			{@render toolList(fixedList, 'fixed')}
+			{@render toolList(enabledList, 'remove')}
 		</ul>
 		{#if disabledList.length > 0}
 			<div class="self-end" in:fade>
@@ -79,7 +87,7 @@
 				</button>
 			</div>
 			<div use:tooltip class="z-20 max-h-[500px] overflow-y-auto rounded-3xl bg-surface2 p-3">
-				{@render toolList(disabledList, false, 'bg-surface3')}
+				{@render toolList(disabledList, 'add')}
 			</div>
 		{/if}
 	</div>

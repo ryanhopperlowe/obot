@@ -12,6 +12,7 @@
 	import { PenBox } from 'lucide-svelte';
 	import type { EditorItem } from '$lib/services/editor/index.svelte';
 	import { getLayout } from '$lib/context/layout.svelte';
+	import { isCapabilityTool } from '$lib/model/tools';
 
 	interface Prop {
 		project: Project;
@@ -48,39 +49,33 @@
 	{/snippet}
 	{#snippet body()}
 		<ul class="space-y-4 py-6 text-sm">
-			{#each tools as tool, i}
-				{#if !tool.builtin}
-					<li>
-						<div class="flex">
-							{#if tool.icon}
-								<img
-									class="h-8 w-8 rounded-md bg-gray-100 p-1"
-									src={tool.icon}
-									alt="message icon"
-								/>
-							{:else}
-								<Wrench class="h-8 w-8 rounded-md bg-gray-100 p-1 text-black" />
-							{/if}
-							<div class="flex flex-1 px-2">
-								<div>
-									<label for="checkbox-item-{i}" class="text-sm font-medium dark:text-gray-100"
-										>{tool.name}</label
-									>
-									<p class="text-xs font-normal text-gray dark:text-gray-300">
-										{tool.description}
-									</p>
-								</div>
+			{#each tools.filter((t) => !isCapabilityTool(t.id)) as tool, i}
+				<li>
+					<div class="flex">
+						{#if tool.icon}
+							<img class="h-8 w-8 rounded-md bg-gray-100 p-1" src={tool.icon} alt="message icon" />
+						{:else}
+							<Wrench class="h-8 w-8 rounded-md bg-gray-100 p-1 text-black" />
+						{/if}
+						<div class="flex flex-1 px-2">
+							<div>
+								<label for="checkbox-item-{i}" class="text-sm font-medium dark:text-gray-100"
+									>{tool.name}</label
+								>
+								<p class="text-xs font-normal text-gray dark:text-gray-300">
+									{tool.description}
+								</p>
 							</div>
-							<button
-								class="p-1"
-								class:invisible={!tool.id.startsWith('tl1')}
-								onclick={() => editTool(tool.id)}
-							>
-								<PenBox class="h-4 w-4" />
-							</button>
 						</div>
-					</li>
-				{/if}
+						<button
+							class="p-1"
+							class:invisible={!tool.id.startsWith('tl1')}
+							onclick={() => editTool(tool.id)}
+						>
+							<PenBox class="h-4 w-4" />
+						</button>
+					</div>
+				</li>
 			{/each}
 		</ul>
 		{#if version.dockerSupported}
