@@ -35,6 +35,7 @@ const QuerySchemas = {
 	obotsSchema: z.object({
 		obotId: z.string().nullish(),
 		parentObotId: z.string().nullish(),
+		userId: z.string().nullish(),
 	}),
 } as const;
 

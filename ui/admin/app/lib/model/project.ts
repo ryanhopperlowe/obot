@@ -5,6 +5,7 @@ type ProjectManifest = ThreadManifest & {
 	parentID: string;
 	assistantID: string;
 	editor: boolean;
+	userID: string;
 };
 
 export type Project = EntityMeta & ProjectManifest;

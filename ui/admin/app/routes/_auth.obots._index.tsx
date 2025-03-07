@@ -10,10 +10,12 @@ import { $path } from "safe-routes";
 import useSWR, { preload } from "swr";
 
 import { Project } from "~/lib/model/project";
+import { getUserDisplayName } from "~/lib/model/users";
 import { UserRoutes } from "~/lib/routers/userRoutes";
 import { AgentService } from "~/lib/service/api/agentService";
 import { ProjectApiService } from "~/lib/service/api/projectApiService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
+import { UserService } from "~/lib/service/api/userService";
 import { RouteQueryParams, RouteService } from "~/lib/service/routeService";
 import { pluralize } from "~/lib/utils";
 
@@ -39,6 +41,7 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
 		preload(...ProjectApiService.getAll.swr({})),
 		preload(...AgentService.getAgents.swr({})),
 		preload(...ThreadsService.getThreads.swr({})),
+		preload(...UserService.getUsers.swr({})),
 	]);
 
 	const query = RouteService.getQueryParams(
@@ -105,6 +108,11 @@ export default function ProjectsPage() {
 		[threads]
 	);
 
+	const { data: users } = useSWR(...UserService.getUsers.swr({}), {
+		suspense: true,
+	});
+	const userMap = useMemo(() => new Map(users?.map((u) => [u.id, u])), [users]);
+
 	const { interceptAsync, dialogProps } = useConfirmationDialog();
 
 	const deleteProject = useAsync(ProjectApiService.delete, {
@@ -123,7 +131,7 @@ export default function ProjectsPage() {
 						<h2>Obots</h2>
 					</div>
 
-					<Filters projectMap={projectMap} url="/obots" />
+					<Filters projectMap={projectMap} userMap={userMap} url="/obots" />
 
 					<DataTable columns={getColumns()} data={filteredProjects} />
 				</div>
@@ -131,8 +139,8 @@ export default function ProjectsPage() {
 
 			<ConfirmationDialog
 				{...dialogProps}
-				title="Delete Project?"
-				description="Are you sure you want to delete this project? This action cannot be undone."
+				title="Delete Obot?"
+				description="Are you sure you want to delete this obot? This action cannot be undone."
 				confirmProps={{
 					variant: "destructive",
 					children: "Delete",
@@ -175,6 +183,18 @@ export default function ProjectsPage() {
 						{agentMap.get(getValue())?.name}
 					</Link>
 				),
+			}),
+			columnHelper.accessor("userID", {
+				header: "Created By",
+				cell: ({ getValue }) => {
+					if (!getValue()) return "-";
+
+					return (
+						<Link to={$path("/users", { userId: getValue() })}>
+							{getUserDisplayName(userMap.get(getValue()))}
+						</Link>
+					);
+				},
 			}),
 			columnHelper.display({
 				id: "info",
