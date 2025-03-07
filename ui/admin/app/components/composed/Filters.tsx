@@ -102,7 +102,7 @@ export function Filters({
 				filters.parentObotId &&
 				projectMap && {
 					key: "parentObotId",
-					label: "Children of",
+					label: "Spawned from",
 					value:
 						projectMap.get(filters.parentObotId)?.name ?? filters.parentObotId,
 					onRemove: () => deleteFilters("parentObotId"),

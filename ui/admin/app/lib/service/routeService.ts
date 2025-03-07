@@ -36,6 +36,13 @@ const QuerySchemas = {
 		obotId: z.string().nullish(),
 		parentObotId: z.string().nullish(),
 		userId: z.string().nullish(),
+		showChildren: z
+			.boolean()
+			.nullish()
+			.catch((val) => {
+				if (typeof val.input === "string") return val.input === "true";
+				return undefined;
+			}),
 	}),
 } as const;
 
@@ -149,7 +156,7 @@ export const RouteHelperMap = {
 	},
 } satisfies Record<keyof Routes, RouteHelper>;
 
-type QueryInfo<T extends keyof Routes> = z.infer<
+export type QueryInfo<T extends keyof Routes> = z.infer<
 	(typeof RouteHelperMap)[T]["schema"]
 >;
 

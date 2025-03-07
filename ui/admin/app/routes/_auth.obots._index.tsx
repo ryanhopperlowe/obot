@@ -1,11 +1,7 @@
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
-import { EllipsisIcon } from "lucide-react";
+import { EllipsisIcon, ExternalLinkIcon } from "lucide-react";
 import { useMemo } from "react";
-import {
-	ClientLoaderFunctionArgs,
-	MetaFunction,
-	useLoaderData,
-} from "react-router";
+import { MetaFunction } from "react-router";
 import { $path } from "safe-routes";
 import useSWR, { preload } from "swr";
 
@@ -16,13 +12,12 @@ import { AgentService } from "~/lib/service/api/agentService";
 import { ProjectApiService } from "~/lib/service/api/projectApiService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
 import { UserService } from "~/lib/service/api/userService";
-import { RouteQueryParams, RouteService } from "~/lib/service/routeService";
+import { RouteQueryParams } from "~/lib/service/routeService";
 import { pluralize } from "~/lib/utils";
 
 import { ConfirmationDialog } from "~/components/composed/ConfirmationDialog";
 import { DataTable } from "~/components/composed/DataTable";
 import { Filters } from "~/components/composed/Filters";
-import { Truncate } from "~/components/composed/typography";
 import { Button } from "~/components/ui/button";
 import {
 	DropdownMenu,
@@ -30,31 +25,26 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { Label } from "~/components/ui/label";
 import { Link } from "~/components/ui/link";
+import { Switch } from "~/components/ui/switch";
 import { useConfirmationDialog } from "~/hooks/component-helpers/useConfirmationDialog";
 import { useAsync } from "~/hooks/useAsync";
+import { useQueryInfo } from "~/hooks/useRouteInfo";
 
 export type SearchParams = RouteQueryParams<"obotsSchema">;
 
-export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
+export async function clientLoader() {
 	await Promise.all([
 		preload(...ProjectApiService.getAll.swr({})),
 		preload(...AgentService.getAgents.swr({})),
 		preload(...ThreadsService.getThreads.swr({})),
 		preload(...UserService.getUsers.swr({})),
 	]);
-
-	const query = RouteService.getQueryParams(
-		"/obots",
-		new URL(request.url).search
-	);
-
-	return { query };
 }
 
 export default function ProjectsPage() {
-	const { query } = useLoaderData<typeof clientLoader>();
-	const { obotId, parentObotId } = query ?? {};
+	const query = useQueryInfo("/obots");
 
 	const { data: projects, mutate: refresh } = useSWR(
 		...ProjectApiService.getAll.swr({}),
@@ -70,18 +60,24 @@ export default function ProjectsPage() {
 	}
 
 	const filteredProjects = useMemo(() => {
-		if (!obotId && !parentObotId) return projects;
-
 		let filtered = projects;
+
+		const { obotId, parentObotId, showChildren } = query.params ?? {};
+
 		if (obotId) {
 			filtered = filtered.filter((p) => p.id === obotId);
 		}
+
 		if (parentObotId) {
 			filtered = filtered.filter((p) => p.parentID === parentObotId);
 		}
 
+		if (!showChildren) {
+			filtered = filtered.filter((p) => !p.parentID);
+		}
+
 		return filtered;
-	}, [projects, obotId, parentObotId]);
+	}, [projects, query.params]);
 
 	const { data: agents } = useSWR(...AgentService.getAgents.swr({}), {
 		suspense: true,
@@ -131,7 +127,17 @@ export default function ProjectsPage() {
 						<h2>Obots</h2>
 					</div>
 
-					<Filters projectMap={projectMap} userMap={userMap} url="/obots" />
+					<div className="flex justify-between p-1">
+						<Filters projectMap={projectMap} userMap={userMap} url="/obots" />
+						<div className="flex items-center gap-2">
+							<Label htmlFor="show-children">Include spawned Obots</Label>
+							<Switch
+								id="show-children"
+								checked={!!query.params?.showChildren}
+								onCheckedChange={(val) => query.update("showChildren", val)}
+							/>
+						</div>
+					</div>
 
 					<DataTable columns={getColumns()} data={filteredProjects} />
 				</div>
@@ -140,7 +146,7 @@ export default function ProjectsPage() {
 			<ConfirmationDialog
 				{...dialogProps}
 				title="Delete Obot?"
-				description="Are you sure you want to delete this obot? This action cannot be undone."
+				description="Are you sure you want to delete this Obot? This action cannot be undone."
 				confirmProps={{
 					variant: "destructive",
 					children: "Delete",
@@ -158,14 +164,11 @@ export default function ProjectsPage() {
 				cell: ({ row }) => (
 					<div>
 						<p>{row.original.name}</p>
-						<Truncate asChild classNames={{ content: "text-muted-foreground" }}>
-							<small className="break-all">{row.original.id}</small>
-						</Truncate>
 					</div>
 				),
 			}),
 			columnHelper.accessor("parentID", {
-				header: "Parent",
+				header: "Spawned from",
 				cell: ({ row }) => {
 					if (!row.original.parentID) return "-";
 
@@ -206,11 +209,18 @@ export default function ProjectsPage() {
 						<div className="flex flex-col">
 							<p className="flex items-center gap-2">
 								{childCount > 0 ? (
-									<Link to={$path("/obots", { parentObotId: row.original.id })}>
-										{childCount} {pluralize(childCount, "child", "children")}
+									<Link
+										to={$path("/obots", {
+											parentObotId: row.original.id,
+											showChildren: true,
+										})}
+									>
+										{childCount} spawned Obots
 									</Link>
 								) : (
-									<span className="text-muted-foreground">No children</span>
+									<span className="text-muted-foreground">
+										No spawned Obots
+									</span>
 								)}
 							</p>
 
@@ -248,8 +258,9 @@ export default function ProjectsPage() {
 									href={UserRoutes.obot(row.original.id).url}
 									target="_blank"
 									rel="noopener noreferrer"
+									className="flex items-center gap-2"
 								>
-									Try it out!
+									Go to Obot <ExternalLinkIcon className="size-4" />
 								</a>
 							</DropdownMenuItem>
 
@@ -259,7 +270,7 @@ export default function ProjectsPage() {
 									handleDelete(row.original.id, row.original.assistantID)
 								}
 							>
-								Delete Project
+								Delete Obot
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
