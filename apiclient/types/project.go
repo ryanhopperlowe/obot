@@ -5,7 +5,7 @@ type Project struct {
 	ProjectManifest
 	AssistantID string `json:"assistantID,omitempty"`
 	Editor      bool   `json:"editor"`
-	ParentID    string `json:"parentID,omitempty`
+	ParentID    string `json:"parentID,omitempty"`
 }
 
 type ProjectManifest struct {
