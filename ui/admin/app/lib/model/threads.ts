@@ -7,11 +7,12 @@ export type ThreadManifest = {
 	name: string;
 	description?: string;
 	tools?: string[];
-	icons?: AgentIcons;
+	icons?: Nullish<AgentIcons>;
+	revision?: string;
 	prompt: string;
 	knowledgeDescription: string;
 	introductionMessage: string;
-	starterMessages: string[];
+	starterMessages: Nullish<string[]>;
 };
 
 export type Thread = EntityMeta &
