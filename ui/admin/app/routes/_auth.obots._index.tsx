@@ -16,7 +16,7 @@ import { RouteQueryParams } from "~/lib/service/routeService";
 import { pluralize } from "~/lib/utils";
 
 import { ConfirmationDialog } from "~/components/composed/ConfirmationDialog";
-import { DataTable } from "~/components/composed/DataTable";
+import { DataTable, DataTableFilter } from "~/components/composed/DataTable";
 import { Filters } from "~/components/composed/Filters";
 import { Button } from "~/components/ui/button";
 import {
@@ -44,7 +44,7 @@ export async function clientLoader() {
 }
 
 export default function ProjectsPage() {
-	const query = useQueryInfo("/obots");
+	const pageQuery = useQueryInfo("/obots");
 
 	const { data: projects, mutate: refresh } = useSWR(
 		...ProjectApiService.getAll.swr({}),
@@ -62,7 +62,12 @@ export default function ProjectsPage() {
 	const filteredProjects = useMemo(() => {
 		let filtered = projects;
 
-		const { obotId, parentObotId, showChildren } = query.params ?? {};
+		const { obotId, parentObotId, showChildren, agentId } =
+			pageQuery.params ?? {};
+
+		if (agentId) {
+			filtered = filtered.filter((p) => p.assistantID === agentId);
+		}
 
 		if (obotId) {
 			filtered = filtered.filter((p) => p.id === obotId);
@@ -77,7 +82,7 @@ export default function ProjectsPage() {
 		}
 
 		return filtered;
-	}, [projects, query.params]);
+	}, [projects, pageQuery.params]);
 
 	const { data: agents } = useSWR(...AgentService.getAgents.swr({}), {
 		suspense: true,
@@ -128,13 +133,22 @@ export default function ProjectsPage() {
 					</div>
 
 					<div className="flex justify-between p-1">
-						<Filters projectMap={projectMap} userMap={userMap} url="/obots" />
+						<Filters
+							projectMap={projectMap}
+							userMap={userMap}
+							agentMap={agentMap}
+							url="/obots"
+						/>
+
 						<div className="flex items-center gap-2">
 							<Label htmlFor="show-children">Include spawned Obots</Label>
 							<Switch
 								id="show-children"
-								checked={!!query.params?.showChildren}
-								onCheckedChange={(val) => query.update("showChildren", val)}
+								checked={!!pageQuery.params?.showChildren}
+								onCheckedChange={(checked) => {
+									if (checked) pageQuery.update("showChildren", true);
+									else pageQuery.remove("showChildren");
+								}}
 							/>
 						</div>
 					</div>
@@ -168,7 +182,14 @@ export default function ProjectsPage() {
 				),
 			}),
 			columnHelper.accessor("parentID", {
-				header: "Spawned from",
+				header: ({ column }) => (
+					<DataTableFilter
+						key={column.id}
+						values={projects.map((p) => ({ id: p.id, name: p.name }))}
+						field="Spawned from"
+						onSelect={(value) => pageQuery.update("parentObotId", value)}
+					/>
+				),
 				cell: ({ row }) => {
 					if (!row.original.parentID) return "-";
 
@@ -180,7 +201,15 @@ export default function ProjectsPage() {
 				},
 			}),
 			columnHelper.accessor("assistantID", {
-				header: "Agent",
+				id: "agent",
+				header: ({ column }) => (
+					<DataTableFilter
+						key={column.id}
+						values={agents?.map((a) => ({ id: a.id, name: a.name }))}
+						field="Agent"
+						onSelect={(value) => pageQuery.update("agentId", value)}
+					/>
+				),
 				cell: ({ getValue }) => (
 					<Link to={$path("/agents/:id", { id: getValue() })}>
 						{agentMap.get(getValue())?.name}
@@ -188,7 +217,15 @@ export default function ProjectsPage() {
 				),
 			}),
 			columnHelper.accessor("userID", {
-				header: "Created By",
+				id: "user",
+				header: ({ column }) => (
+					<DataTableFilter
+						key={column.id}
+						values={users?.map((u) => ({ id: u.id, name: u.email }))}
+						field="Created By"
+						onSelect={(value) => pageQuery.update("userId", value)}
+					/>
+				),
 				cell: ({ getValue }) => {
 					if (!getValue()) return "-";
 

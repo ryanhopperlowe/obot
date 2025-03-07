@@ -36,6 +36,7 @@ const QuerySchemas = {
 		obotId: z.string().nullish(),
 		parentObotId: z.string().nullish(),
 		userId: z.string().nullish(),
+		agentId: z.string().nullish(),
 		showChildren: z
 			.boolean()
 			.nullish()
