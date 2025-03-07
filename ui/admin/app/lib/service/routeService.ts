@@ -32,6 +32,10 @@ const QuerySchemas = {
 		createdEnd: z.string().nullish(),
 	}),
 	usersSchema: z.object({ userId: z.string().optional() }),
+	obotsSchema: z.object({
+		obotId: z.string().nullish(),
+		parentObotId: z.string().nullish(),
+	}),
 } as const;
 
 function parseQuery<T extends ZodType>(search: string, schema: T) {
@@ -80,7 +84,7 @@ export const RouteHelperMap = {
 	"/obots": {
 		regex: exactRegex($path("/obots")),
 		path: "/obots",
-		schema: z.null(),
+		schema: QuerySchemas.obotsSchema,
 	},
 	"/auth-providers": {
 		regex: exactRegex($path("/auth-providers")),

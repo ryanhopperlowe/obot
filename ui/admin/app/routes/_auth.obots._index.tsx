@@ -1,7 +1,11 @@
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import { EllipsisIcon } from "lucide-react";
 import { useMemo } from "react";
-import { ClientLoaderFunction, MetaFunction } from "react-router";
+import {
+	ClientLoaderFunctionArgs,
+	MetaFunction,
+	useLoaderData,
+} from "react-router";
 import { $path } from "safe-routes";
 import useSWR, { preload } from "swr";
 
@@ -10,9 +14,13 @@ import { UserRoutes } from "~/lib/routers/userRoutes";
 import { AgentService } from "~/lib/service/api/agentService";
 import { ProjectApiService } from "~/lib/service/api/projectApiService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
+import { RouteQueryParams, RouteService } from "~/lib/service/routeService";
+import { pluralize } from "~/lib/utils";
 
 import { ConfirmationDialog } from "~/components/composed/ConfirmationDialog";
 import { DataTable } from "~/components/composed/DataTable";
+import { Filters } from "~/components/composed/Filters";
+import { Truncate } from "~/components/composed/typography";
 import { Button } from "~/components/ui/button";
 import {
 	DropdownMenu,
@@ -24,15 +32,27 @@ import { Link } from "~/components/ui/link";
 import { useConfirmationDialog } from "~/hooks/component-helpers/useConfirmationDialog";
 import { useAsync } from "~/hooks/useAsync";
 
-export const clientLoader: ClientLoaderFunction = async () => {
+export type SearchParams = RouteQueryParams<"obotsSchema">;
+
+export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
 	await Promise.all([
 		preload(...ProjectApiService.getAll.swr({})),
 		preload(...AgentService.getAgents.swr({})),
 		preload(...ThreadsService.getThreads.swr({})),
 	]);
-};
+
+	const query = RouteService.getQueryParams(
+		"/obots",
+		new URL(request.url).search
+	);
+
+	return { query };
+}
 
 export default function ProjectsPage() {
+	const { query } = useLoaderData<typeof clientLoader>();
+	const { obotId, parentObotId } = query ?? {};
+
 	const { data: projects, mutate: refresh } = useSWR(
 		...ProjectApiService.getAll.swr({}),
 		{ suspense: true }
@@ -41,6 +61,24 @@ export default function ProjectsPage() {
 		() => new Map(projects.map((p) => [p.id, p])),
 		[projects]
 	);
+
+	function getChildCount(projectId: string) {
+		return projects.filter((p) => p.parentID === projectId).length;
+	}
+
+	const filteredProjects = useMemo(() => {
+		if (!obotId && !parentObotId) return projects;
+
+		let filtered = projects;
+		if (obotId) {
+			filtered = filtered.filter((p) => p.id === obotId);
+		}
+		if (parentObotId) {
+			filtered = filtered.filter((p) => p.parentID === parentObotId);
+		}
+
+		return filtered;
+	}, [projects, obotId, parentObotId]);
 
 	const { data: agents } = useSWR(...AgentService.getAgents.swr({}), {
 		suspense: true,
@@ -85,7 +123,9 @@ export default function ProjectsPage() {
 						<h2>Obots</h2>
 					</div>
 
-					<DataTable columns={getColumns()} data={projects} />
+					<Filters projectMap={projectMap} url="/obots" />
+
+					<DataTable columns={getColumns()} data={filteredProjects} />
 				</div>
 			</div>
 
@@ -110,7 +150,9 @@ export default function ProjectsPage() {
 				cell: ({ row }) => (
 					<div>
 						<p>{row.original.name}</p>
-						<small className="text-muted-foreground">{row.original.id}</small>
+						<Truncate asChild classNames={{ content: "text-muted-foreground" }}>
+							<small className="break-all">{row.original.id}</small>
+						</Truncate>
 					</div>
 				),
 			}),
@@ -119,7 +161,11 @@ export default function ProjectsPage() {
 				cell: ({ row }) => {
 					if (!row.original.parentID) return "-";
 
-					return <p>{projectMap.get(row.original.parentID)?.name}</p>;
+					return (
+						<Link to={$path("/obots", { obotId: row.original.parentID })}>
+							{projectMap.get(row.original.parentID)?.name}
+						</Link>
+					);
 				},
 			}),
 			columnHelper.accessor("assistantID", {
@@ -130,22 +176,39 @@ export default function ProjectsPage() {
 					</Link>
 				),
 			}),
-			columnHelper.accessor((row) => String(threadCounts.get(row.id) ?? 0), {
-				header: "Threads",
-				cell: ({ row, getValue }) => {
-					const count = Number(getValue());
-
-					if (count === 0) return "-";
+			columnHelper.display({
+				id: "info",
+				cell: ({ row }) => {
+					const childCount = getChildCount(row.original.id);
+					const threadCount = threadCounts.get(row.original.id) ?? 0;
 
 					return (
-						<Link
-							to={$path("/chat-threads", {
-								obotId: row.original.id,
-								from: "obots",
-							})}
-						>
-							{count} Threads
-						</Link>
+						<div className="flex flex-col">
+							<p className="flex items-center gap-2">
+								{childCount > 0 ? (
+									<Link to={$path("/obots", { parentObotId: row.original.id })}>
+										{childCount} {pluralize(childCount, "child", "children")}
+									</Link>
+								) : (
+									<span className="text-muted-foreground">No children</span>
+								)}
+							</p>
+
+							<p className="flex items-center gap-2">
+								{threadCount > 0 ? (
+									<Link
+										to={$path("/chat-threads", {
+											obotId: row.original.id,
+											from: "obots",
+										})}
+									>
+										{threadCount} {pluralize(threadCount, "thread", "threads")}
+									</Link>
+								) : (
+									<span className="text-muted-foreground">No threads</span>
+								)}
+							</p>
+						</div>
 					);
 				},
 			}),

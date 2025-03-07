@@ -16,6 +16,7 @@ type QueryParams = {
 	userId?: string;
 	taskId?: string;
 	obotId?: string;
+	parentObotId?: string;
 	createdStart?: string;
 	createdEnd?: string;
 };
@@ -96,6 +97,15 @@ export function Filters({
 					label: "Obot",
 					value: projectMap.get(filters.obotId)?.name ?? filters.obotId,
 					onRemove: () => deleteFilters("obotId"),
+				},
+			"parentObotId" in filters &&
+				filters.parentObotId &&
+				projectMap && {
+					key: "parentObotId",
+					label: "Children of",
+					value:
+						projectMap.get(filters.parentObotId)?.name ?? filters.parentObotId,
+					onRemove: () => deleteFilters("parentObotId"),
 				},
 		].filter((x) => !!x);
 	}, [url, searchParams, agentMap, userMap, taskMap, projectMap, navigate]);
