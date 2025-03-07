@@ -56,7 +56,8 @@ export default function ProjectsPage() {
 	const threadCounts = useMemo(
 		() =>
 			threads.reduce<Map<string, number>>((acc, thread) => {
-				if (!thread.projectID) return acc;
+				// filter out threads that don't have a parent project, or that are projects themselves
+				if (!thread.projectID || thread.project) return acc;
 
 				const count = acc.get(thread.projectID) ?? 0;
 				acc.set(thread.projectID, count + 1);
@@ -64,11 +65,6 @@ export default function ProjectsPage() {
 				return acc;
 			}, new Map()),
 		[threads]
-	);
-
-	console.log(
-		threads.filter((t) => !!t.projectID),
-		threadCounts
 	);
 
 	const { interceptAsync, dialogProps } = useConfirmationDialog();
@@ -119,7 +115,7 @@ export default function ProjectsPage() {
 				),
 			}),
 			columnHelper.accessor("parentID", {
-				header: "Copied From",
+				header: "Parent",
 				cell: ({ row }) => {
 					if (!row.original.parentID) return "-";
 
@@ -136,6 +132,22 @@ export default function ProjectsPage() {
 			}),
 			columnHelper.accessor((row) => String(threadCounts.get(row.id) ?? 0), {
 				header: "Threads",
+				cell: ({ row, getValue }) => {
+					const count = Number(getValue());
+
+					if (count === 0) return "-";
+
+					return (
+						<Link
+							to={$path("/chat-threads", {
+								obotId: row.original.id,
+								from: "obots",
+							})}
+						>
+							{count} Threads
+						</Link>
+					);
+				},
 			}),
 			columnHelper.display({
 				id: "actions",

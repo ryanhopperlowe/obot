@@ -16,7 +16,8 @@ const QuerySchemas = {
 		agentId: z.string().nullish(),
 		userId: z.string().nullish(),
 		taskId: z.string().nullish(),
-		from: z.enum(["tasks", "agents", "users"]).nullish().catch(null),
+		obotId: z.string().nullish(),
+		from: z.enum(["tasks", "agents", "users", "obots"]).nullish().catch(null),
 		createdStart: z.string().nullish(),
 		createdEnd: z.string().nullish(),
 	}),
@@ -75,6 +76,11 @@ export const RouteHelperMap = {
 		regex: exactRegex($path("/agents/:id", { id: "(.+)" })),
 		path: "/agents/:id",
 		schema: QuerySchemas.agentSchema,
+	},
+	"/obots": {
+		regex: exactRegex($path("/obots")),
+		path: "/obots",
+		schema: z.null(),
 	},
 	"/auth-providers": {
 		regex: exactRegex($path("/auth-providers")),
