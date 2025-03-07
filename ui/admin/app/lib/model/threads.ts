@@ -1,17 +1,24 @@
 import { RunState } from "@gptscript-ai/gptscript";
 
+import { AgentIcons } from "~/lib/model/agents";
 import { EntityMeta } from "~/lib/model/primitives";
 
-export type ThreadBase = {
+export type ThreadManifest = {
+	name: string;
 	description?: string;
 	tools?: string[];
+	icons?: AgentIcons;
+	prompt: string;
+	knowledgeDescription: string;
+	introductionMessage: string;
+	starterMessages: string[];
 };
 
 export type Thread = EntityMeta &
-	ThreadBase & {
+	ThreadManifest & {
 		state?: RunState;
 		currentRunId?: string;
-		parentThreadId?: string;
+		projectID?: string;
 		lastRunID?: string;
 		userID?: string;
 		project?: boolean;
@@ -20,4 +27,4 @@ export type Thread = EntityMeta &
 		| { agentID?: never; workflowID: string }
 	);
 
-export type UpdateThread = ThreadBase;
+export type UpdateThread = ThreadManifest;

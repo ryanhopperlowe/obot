@@ -47,6 +47,11 @@ const items = [
 		icon: BotIcon,
 	},
 	{
+		title: "Obots",
+		url: $path("/obots"),
+		icon: BotIcon,
+	},
+	{
 		title: "Chat Threads",
 		url: $path("/chat-threads"),
 		icon: MessageSquare,
