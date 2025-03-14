@@ -42,11 +42,11 @@
 <div class="relative flex h-full flex-col">
 	{#if layout.fileEditorOpen}
 		{#if layout.items.length > 1 || (!layout.items[0]?.table && !layout.items[0]?.generic)}
-			<div class="relative flex items-center border-b-2 border-surface2">
-				<ul class="relative flex flex-1 items-center gap-1 pb-2 text-center text-sm">
+			<div class="relative flex items-center border-b-2 border-surface2 pb-2">
+				<ul class="relative flex flex-1 items-center gap-1 text-center text-sm">
 					{#each layout.items as item (item.id)}
-						{@const tt = popover({ hover: true, placement: 'top' })}
-						<p use:tt.tooltip class="rounded-full bg-surface2 p-2">
+						{@const tt = popover({ hover: true, placement: 'top-start' })}
+						<p use:tt.tooltip class="tooltip-text">
 							{item.name}
 						</p>
 

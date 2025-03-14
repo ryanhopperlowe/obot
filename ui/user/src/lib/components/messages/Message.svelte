@@ -12,6 +12,7 @@
 	import { waitingOnModelMessage } from '$lib/services/chat/messages';
 	import Loading from '$lib/icons/Loading.svelte';
 	import { fade } from 'svelte/transition';
+	import { overflowToolTip } from '$lib/actions/overflow';
 
 	interface Props {
 		msg: Message;
@@ -193,19 +194,13 @@
 {#snippet files()}
 	{#if msg.file?.filename}
 		<button
-			class="my-2 flex cursor-pointer flex-col divide-y
-		 divide-gray-300 rounded-3xl
-		 border border-gray-300
-		 bg-white text-start
-		 text-black shadow-lg
-		   dark:bg-black
-		    dark:text-gray-50"
+			class="my-2 flex cursor-pointer flex-col divide-y divide-gray-300 rounded-3xl border border-gray-300 bg-white text-start text-black shadow-lg dark:bg-black dark:text-gray-50"
 			onclick={fileLoad}
 		>
-			<div class="flex gap-2 px-5 py-4 text-md">
-				<div class="flex grow justify-start gap-2">
-					<FileText />
-					<span>{msg.file.filename}</span>
+			<div class="text-md flex gap-2 px-5 py-4">
+				<div class="flex items-center justify-start gap-2">
+					<FileText class="min-w-fit" />
+					<span use:overflowToolTip={{ placement: 'top' }}>{msg.file.filename}</span>
 				</div>
 				<div>
 					<Pencil />
@@ -213,7 +208,7 @@
 				</div>
 			</div>
 			<div class="relative">
-				<div class="whitespace-pre-wrap p-5 font-body text-md text-gray-700 dark:text-gray-300">
+				<div class="text-md whitespace-pre-wrap p-5 font-body text-gray-700 dark:text-gray-300">
 					{msg.file.content.split('\n').splice(0, 6).join('\n')}
 				</div>
 				<div
@@ -248,7 +243,7 @@
 					}}>{msg.explain.filename}</button
 				>
 			</div>
-			<div class="whitespace-pre-wrap p-5 font-body text-md text-gray-700 dark:text-gray-300">
+			<div class="text-md whitespace-pre-wrap p-5 font-body text-gray-700 dark:text-gray-300">
 				{msg.explain.selection}
 			</div>
 		</div>
@@ -465,7 +460,7 @@
 		}
 
 		.message-content p {
-			@apply mb-4 text-md text-gray-900 dark:text-gray-100;
+			@apply text-md mb-4 text-gray-900 dark:text-gray-100;
 		}
 
 		.message-content a {
@@ -481,7 +476,7 @@
 		}
 
 		.message-content ul li {
-			@apply ps-2 text-md;
+			@apply text-md ps-2;
 		}
 
 		.message-content code {

@@ -156,18 +156,22 @@
 							{:else}
 								<FileText class="size-5 min-w-fit" />
 							{/if}
-							<span use:overflowToolTip>{file.name}</span>
+							<span use:overflowToolTip={{ placement: 'top-start', tooltipClass: 'min-w-full' }}
+								>{file.name}</span
+							>
 						</button>
+
 						<button
-							class="ms-2 hidden group-hover:block"
+							class="icon-button-small invisible ms-2 group-hover:visible"
 							onclick={() => {
 								EditorService.download([], project, file.name, apiOpts);
 							}}
 						>
 							<Download class="h-5 w-5 text-gray" />
 						</button>
+
 						<button
-							class="ms-2 hidden group-hover:block"
+							class="icon-button-small invisible ms-2 group-hover:visible"
 							onclick={() => {
 								fileToDelete = file.name;
 							}}

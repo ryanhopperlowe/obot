@@ -19,6 +19,7 @@
 	import Tools from '$lib/components/navbar/Tools.svelte';
 	import type { UIEventHandler } from 'svelte/elements';
 	import AssistantIcon from '$lib/icons/AssistantIcon.svelte';
+	import { popover } from '$lib/actions';
 
 	interface Props {
 		id?: string;
@@ -55,6 +56,9 @@
 	});
 
 	let scrollControls = $state<StickToBottomControls>();
+
+	const fileTT = popover({ hover: true, placement: 'top' });
+	const toolsTT = popover({ hover: true, placement: 'top' });
 
 	onDestroy(() => {
 		thread?.close?.();
@@ -185,23 +189,28 @@
 			</div>
 		</div>
 		<div class="absolute inset-x-0 bottom-0 z-30 flex justify-center py-8">
-			<div class="w-full max-w-[1000px]">
-				<Input
-					readonly={messages.inProgress}
-					pending={thread?.pending}
-					onAbort={async () => {
-						await thread?.abort();
-					}}
-					onSubmit={async (i) => {
-						await ensureThread();
-						scrollSmooth = false;
-						scrollControls?.stickToBottom();
-						await thread?.invoke(i);
-					}}
-					bind:items={layout.items}
-				>
-					<div class="flex w-fit items-center gap-1">
+			<Input
+				readonly={messages.inProgress}
+				pending={thread?.pending}
+				onAbort={async () => {
+					await thread?.abort();
+				}}
+				onSubmit={async (i) => {
+					await ensureThread();
+					scrollSmooth = false;
+					scrollControls?.stickToBottom();
+					await thread?.invoke(i);
+				}}
+				bind:items={layout.items}
+			>
+				<div class="flex w-fit items-center gap-1">
+					<div use:fileTT.ref>
+						<p use:fileTT.tooltip class="tooltip-text">Open in Editor</p>
 						<Files thread {project} bind:currentThreadID={id} />
+					</div>
+
+					<div use:toolsTT.ref>
+						<p use:toolsTT.tooltip class="tooltip-text">Tools</p>
 						<Tools {project} {version} {tools} />
 					</div>
 				</Input>
