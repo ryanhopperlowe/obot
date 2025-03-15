@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { popover } from '$lib/actions';
+	import { overflowToolTip } from '$lib/actions/overflow';
 	import Controls from '$lib/components/editor/Controls.svelte';
 	import FileEditors from '$lib/components/editor/FileEditors.svelte';
 	import Terminal from '$lib/components/terminal/Terminal.svelte';
@@ -45,15 +45,9 @@
 			<div class="relative flex items-center border-b-2 border-surface2 pb-2">
 				<ul class="relative flex flex-1 items-center gap-1 text-center text-sm">
 					{#each layout.items as item (item.id)}
-						{@const tt = popover({ hover: true, placement: 'top-start' })}
-						<p use:tt.tooltip class="tooltip-text">
-							{item.name}
-						</p>
-
 						<li class="flex-1">
 							<!-- TODO: div with onclick is not accessible, we'll need to update this in the future -->
 							<div
-								use:tt.ref
 								role="none"
 								onclick={() => {
 									EditorService.select(layout.items, item.id);
@@ -66,7 +60,14 @@
 								<div
 									class="relative flex w-full items-center justify-between gap-1 [&_svg]:size-4 [&_svg]:min-w-fit"
 								>
-									<span class="line-clamp-1 break-all p-1">{item.name}</span>
+									<span
+										use:overflowToolTip={{
+											placement: 'top-start',
+											tooltipClass: 'min-w-fit break-words',
+											offset: 8
+										}}
+										class="line-clamp-1 break-all p-1">{item.name}</span
+									>
 
 									<button
 										class={twMerge(

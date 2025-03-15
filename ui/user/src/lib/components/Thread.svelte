@@ -123,10 +123,10 @@
 <div class="relative w-full max-w-[900px] pb-32">
 	<!-- Fade text in/out on scroll -->
 	<div
-		class="absolute inset-x-0 top-0 z-30 h-14 w-full bg-gradient-to-b from-white dark:from-black"
+		class="absolute inset-x-0 top-0 z-10 h-14 w-full bg-gradient-to-b from-white dark:from-black"
 	></div>
 	<div
-		class="absolute inset-x-0 bottom-32 z-30 h-14 w-full bg-gradient-to-t from-white dark:from-black"
+		class="absolute inset-x-0 bottom-32 z-10 h-14 w-full bg-gradient-to-t from-white dark:from-black"
 	></div>
 
 	<div
@@ -188,7 +188,7 @@
 				<!-- Vertical Spacer -->
 			</div>
 		</div>
-		<div class="absolute inset-x-0 bottom-0 z-30 flex justify-center py-8">
+		<div class="absolute inset-x-0 bottom-0 z-30 flex flex-col justify-center py-8">
 			<Input
 				readonly={messages.inProgress}
 				pending={thread?.pending}
@@ -205,18 +205,18 @@
 			>
 				<div class="flex w-fit items-center gap-1">
 					<div use:fileTT.ref>
-						<p use:fileTT.tooltip class="tooltip-text">Open in Editor</p>
+						<p use:fileTT.tooltip class="tooltip">Files</p>
 						<Files thread {project} bind:currentThreadID={id} />
 					</div>
 
 					<div use:toolsTT.ref>
-						<p use:toolsTT.tooltip class="tooltip-text">Tools</p>
+						<p use:toolsTT.tooltip class="tooltip">Tools</p>
 						<Tools {project} {version} {tools} />
 					</div>
-				</Input>
-				<div class="mt-3 text-center text-xs font-light text-gray dark:text-gray-400">
-					Obots aren't perfect. Double check their work.
 				</div>
+			</Input>
+			<div class="mt-3 text-center text-xs font-light text-gray dark:text-gray-400">
+				Obots aren't perfect. Double check their work.
 			</div>
 		</div>
 	</div>

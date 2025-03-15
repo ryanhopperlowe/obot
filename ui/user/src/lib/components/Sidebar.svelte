@@ -70,7 +70,7 @@
 			<Term />
 		{/if}
 
-		<p use:credentialsTT.tooltip class="tooltip-text">Credentials</p>
+		<p use:credentialsTT.tooltip class="tooltip">Credentials</p>
 
 		<button class="icon-button" onclick={() => credentials?.show()} use:credentialsTT.ref>
 			<KeyRound class="icon-default" />

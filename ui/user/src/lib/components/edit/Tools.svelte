@@ -54,7 +54,7 @@
 					<span class="line-clamp-2 text-xs text-gray-500">{tool.description}</span>
 				</div>
 
-				<p use:tt.tooltip class="tooltip-text max-w-64">{tool.description}</p>
+				<p use:tt.tooltip class="tooltip max-w-64">{tool.description}</p>
 			</div>
 		{/each}
 	</ul>

@@ -26,7 +26,7 @@
 	<div class={twMerge('flex items-start', className)}>
 		{#if currentThreadID}
 			<div use:fileTT.ref>
-				<p use:fileTT.tooltip class="tooltip-text">Browse Files</p>
+				<p use:fileTT.tooltip class="tooltip">Browse Files</p>
 				<Files {project} thread {currentThreadID} primary={false} />
 			</div>
 		{/if}
