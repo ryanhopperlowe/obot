@@ -143,7 +143,7 @@
 		<div
 			in:fade|global
 			bind:this={messagesDiv}
-			class="flex h-fit w-full flex-col justify-start gap-8 p-5 transition-all"
+			class="flex h-fit w-full max-w-[900px] flex-col justify-start gap-8 p-5 transition-all"
 			class:justify-center={!thread}
 		>
 			{#if !isTaskRun}
