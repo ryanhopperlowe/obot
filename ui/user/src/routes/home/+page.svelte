@@ -1,18 +1,23 @@
 <script lang="ts">
-	import { darkMode } from '$lib/stores';
-	import { Copy, Pencil, Trash2 } from 'lucide-svelte';
-	import { Plus } from 'lucide-svelte/icons';
-	import Profile from '$lib/components/navbar/Profile.svelte';
-	import { ChatService, EditorService, type ProjectShare, type ToolReference } from '$lib/services';
-	import { errors, responsive } from '$lib/stores';
 	import { goto } from '$app/navigation';
-	import Notifications from '$lib/components/Notifications.svelte';
-	import type { PageProps } from './$types';
-	import DotDotDot from '$lib/components/DotDotDot.svelte';
-	import { type Project } from '$lib/services';
 	import Confirm from '$lib/components/Confirm.svelte';
+	import DotDotDot from '$lib/components/DotDotDot.svelte';
+	import Profile from '$lib/components/navbar/Profile.svelte';
+	import Notifications from '$lib/components/Notifications.svelte';
 	import ToolPill from '$lib/components/ToolPill.svelte';
 	import { getProjectImage } from '$lib/image';
+	import {
+		ChatService,
+		EditorService,
+		type Project,
+		type ProjectShare,
+		type ToolReference
+	} from '$lib/services';
+	import { darkMode, errors, responsive } from '$lib/stores';
+	import { ChevronLeft, ChevronRight, Copy, Pencil, Trash2 } from 'lucide-svelte';
+	import { Plus } from 'lucide-svelte/icons';
+	import { twMerge } from 'tailwind-merge';
+	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 	let toDelete = $state<Project>();
@@ -28,6 +33,37 @@
 			.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime())
 	);
 	let tools = $state(new Map(data.tools.map((t) => [t.id, t])));
+
+	let featuredContainer = $state<HTMLDivElement>();
+	let leftEnd = $state(true);
+	let rightEnd = $state(false);
+
+	function handleFeaturedScroll() {
+		const container = featuredContainer;
+		if (!container) return;
+
+		leftEnd = container.scrollLeft === 0;
+		rightEnd = container.scrollLeft === container.scrollWidth - container.clientWidth;
+	}
+
+	function scrollFeatured(direction: 'left' | 'right') {
+		if (!featuredContainer) return;
+
+		if (direction === 'left') {
+			featuredContainer.scrollTo({
+				left: Math.max(featuredContainer.scrollLeft - 96 * 4, 0),
+				behavior: 'smooth'
+			});
+		} else {
+			featuredContainer.scrollTo({
+				left: Math.min(
+					featuredContainer.scrollLeft + 96 * 4,
+					featuredContainer.scrollWidth - featuredContainer.clientWidth
+				),
+				behavior: 'smooth'
+			});
+		}
+	}
 
 	async function createNew() {
 		try {
@@ -109,11 +145,14 @@
 		</DotDotDot>
 	{/snippet}
 
-	{#snippet projectCard(project: Project | ProjectShare)}
+	{#snippet projectCard(project: Project | ProjectShare, featured?: boolean)}
 		<a
 			href={'publicID' in project ? `/s/${project.publicID}` : `/o/${project.id}`}
 			data-sveltekit-preload-data={'publicID' in project ? 'off' : 'hover'}
-			class="card relative z-20 flex-col overflow-hidden shadow-md"
+			class={twMerge(
+				'card relative z-20 flex-col overflow-hidden shadow-md',
+				featured && 'min-w-96 snap-center '
+			)}
 		>
 			<div class="absolute left-0 top-0 z-30 flex w-full items-center justify-end p-2">
 				<div class="flex items-center justify-end">
@@ -161,6 +200,22 @@
 		</a>
 	{/snippet}
 
+	{#snippet scrollMore(direction: 'left' | 'right')}
+		<button
+			class={twMerge(
+				'absolute top-0 z-20 flex h-full items-center justify-center bg-white/20 px-2 hover:bg-white/30',
+				direction === 'left' ? 'left-0' : 'right-0'
+			)}
+			onclick={() => scrollFeatured(direction)}
+		>
+			{#if direction === 'left'}
+				<ChevronLeft class="z-20 size-12" />
+			{:else}
+				<ChevronRight class="size-12" />
+			{/if}
+		</button>
+	{/snippet}
+
 	<main
 		class="colors-background relative flex w-full max-w-screen-2xl flex-col justify-center pb-12"
 	>
@@ -168,10 +223,23 @@
 			{#if featured.length > 0}
 				<div class="flex w-full flex-col gap-4 px-4 md:px-12">
 					<h3 class="text-2xl font-semibold">Featured</h3>
-					<div class="featured-card-layout">
-						{#each featured as featuredShare}
-							{@render projectCard(featuredShare)}
-						{/each}
+					<div class="relative">
+						<div
+							class="featured-card-layout"
+							onscroll={handleFeaturedScroll}
+							bind:this={featuredContainer}
+						>
+							{#each featured as featuredShare}
+								{@render projectCard(featuredShare, true)}
+							{/each}
+						</div>
+
+						{#if !leftEnd}
+							{@render scrollMore('left')}
+						{/if}
+						{#if !rightEnd}
+							{@render scrollMore('right')}
+						{/if}
 					</div>
 				</div>
 			{/if}
