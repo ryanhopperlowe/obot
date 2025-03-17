@@ -28,11 +28,25 @@ export function ToolCatalogGroup({
 	onRemoveTool: (toolIds: string[], toolOauth?: string) => void;
 	oauths: string[];
 }) {
-	const handleSelect = (toolId: string, toolOauth?: string) => {
+	const handleSelect = (
+		toolId: string,
+		bundleTool: ToolReference,
+		toolOauth?: string
+	) => {
 		if (selectedTools.includes(toolId)) {
-			onRemoveTool([toolId], toolOauth);
+			onRemoveTool([toolId, bundleTool.id], toolOauth);
 		} else {
-			onAddTool([toolId], [], toolOauth);
+			const toolsToAdd = [toolId];
+
+			const hasAllTools = bundleTool.tools?.every((t) =>
+				selectedTools.concat([toolId]).includes(t.id)
+			);
+
+			if (hasAllTools) {
+				toolsToAdd.push(bundleTool.id);
+			}
+
+			onAddTool(toolsToAdd, [], toolOauth);
 		}
 	};
 
@@ -69,30 +83,25 @@ export function ToolCatalogGroup({
 								handleSelectAll(tool, toolOauthToAdd)
 							}
 							expanded={expanded[tool.id]}
+							canExpand={!!tool.tools?.length && tool.tools?.length > 0}
 							onExpand={(expanded) => {
-								setExpanded((prev) => ({
-									...prev,
-									[tool.id]: expanded,
-								}));
+								setExpanded((prev) => ({ ...prev, [tool.id]: expanded }));
 							}}
 							isGroup
 						/>
 
 						{expanded[tool.id] &&
-							[tool]
-								.concat(tool.tools ?? [])
-								.map((categoryTool, i) => (
-									<ToolItem
-										key={categoryTool.id}
-										configured={configured}
-										tool={categoryTool}
-										isSelected={selectedTools.includes(categoryTool.id)}
-										isBundle={i === 0}
-										onSelect={(toolOauthToAdd) =>
-											handleSelect(categoryTool.id, toolOauthToAdd)
-										}
-									/>
-								))}
+							tool.tools?.map((categoryTool) => (
+								<ToolItem
+									key={categoryTool.id}
+									configured={configured}
+									tool={categoryTool}
+									isSelected={selectedTools.includes(categoryTool.id)}
+									onSelect={(toolOauthToAdd) =>
+										handleSelect(categoryTool.id, tool, toolOauthToAdd)
+									}
+								/>
+							))}
 					</Fragment>
 				);
 			})}

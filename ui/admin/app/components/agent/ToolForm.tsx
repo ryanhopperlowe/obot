@@ -265,6 +265,8 @@ export function ToolForm({
 	);
 
 	function renderToolEntry(tool: ToolReference) {
+		if (tool.bundle) return null;
+
 		const field = getField(tool.id);
 		return (
 			<Animate.div key={field.tool} exit={slideExit} layout>
