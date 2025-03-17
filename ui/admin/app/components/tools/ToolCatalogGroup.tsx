@@ -28,30 +28,16 @@ export function ToolCatalogGroup({
 	onRemoveTool: (toolIds: string[], toolOauth?: string) => void;
 	oauths: string[];
 }) {
-	const handleSelect = (
-		toolId: string,
-		bundleTool: ToolReference,
-		toolOauth?: string
-	) => {
+	const handleSelect = (toolId: string, toolOauth?: string) => {
 		if (selectedTools.includes(toolId)) {
-			onRemoveTool([toolId, bundleTool.id], toolOauth);
+			onRemoveTool([toolId], toolOauth);
 		} else {
-			const toolsToAdd = [toolId];
-
-			const hasAllTools = bundleTool.tools?.every((t) =>
-				selectedTools.concat([toolId]).includes(t.id)
-			);
-
-			if (hasAllTools) {
-				toolsToAdd.push(bundleTool.id);
-			}
-
-			onAddTool(toolsToAdd, [], toolOauth);
+			onAddTool([toolId], [], toolOauth);
 		}
 	};
 
 	const handleSelectAll = (bundleTool: ToolReference, toolOauth?: string) => {
-		const tools = [bundleTool, ...(bundleTool.tools ?? [])].map(({ id }) => id);
+		const tools = bundleTool.tools?.map(({ id }) => id) ?? [];
 
 		const add = !selectedTools.some((t) => tools.includes(t));
 		if (add) {
@@ -80,7 +66,9 @@ export function ToolCatalogGroup({
 							configured={configured}
 							isSelected={selectedTools.some((t) => allTools.includes(t))}
 							onSelect={(toolOauthToAdd) =>
-								handleSelectAll(tool, toolOauthToAdd)
+								tool.bundle
+									? handleSelectAll(tool, toolOauthToAdd)
+									: handleSelect(tool.id, toolOauthToAdd)
 							}
 							expanded={expanded[tool.id]}
 							canExpand={!!tool.tools?.length && tool.tools?.length > 0}
@@ -98,7 +86,7 @@ export function ToolCatalogGroup({
 									tool={categoryTool}
 									isSelected={selectedTools.includes(categoryTool.id)}
 									onSelect={(toolOauthToAdd) =>
-										handleSelect(categoryTool.id, tool, toolOauthToAdd)
+										handleSelect(categoryTool.id, toolOauthToAdd)
 									}
 								/>
 							))}

@@ -107,7 +107,6 @@ export function ToolItem({
 							<Button
 								variant="link"
 								size="link-sm"
-								className="gap-2"
 								onClick={(e) => {
 									e.stopPropagation();
 									onExpand?.(!expanded);
