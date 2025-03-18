@@ -4,7 +4,6 @@
 	import type { EditorItem } from '$lib/services/editor/index.svelte';
 	import { ArrowUp, Check, LoaderCircle, X } from 'lucide-svelte';
 	import { onMount, type Snippet, tick } from 'svelte';
-	import { errors } from '$lib/stores';
 	import { slide } from 'svelte/transition';
 	import { twMerge } from 'tailwind-merge';
 
@@ -12,28 +11,25 @@
 		onFocus?: () => void;
 		onSubmit?: (input: InvokeInput) => void | Promise<void>;
 		onAbort?: () => Promise<void>;
-		onUpload?: (file: File) => Promise<void>;
 		children?: Snippet;
 		placeholder?: string;
 		readonly?: boolean;
 		pending?: boolean;
 		items?: EditorItem[];
+		uploadState?: 'idle' | 'uploading' | 'success' | 'error';
 	}
 
 	let {
 		onFocus,
 		onSubmit,
 		onAbort,
-		onUpload,
 		children,
 		readonly,
 		pending,
+		uploadState,
 		placeholder = 'Your message...',
 		items = $bindable([])
 	}: Props = $props();
-
-	let dragging = $state(false);
-	let uploadState = $state<'idle' | 'uploading' | 'success' | 'error'>('idle');
 
 	let value = $state('');
 	let chat: HTMLTextAreaElement;
@@ -88,41 +84,6 @@
 			return;
 		}
 		await submit();
-	}
-
-	async function ondrop(e: DragEvent) {
-		if (!onUpload) return;
-
-		e.preventDefault();
-		e.stopPropagation();
-
-		dragging = false;
-		if (e.dataTransfer?.files[0]) {
-			uploadState = 'uploading';
-			try {
-				await onUpload(e.dataTransfer?.files[0]);
-				uploadState = 'success';
-			} catch (e) {
-				uploadState = 'error';
-				errors.append(e, 5000);
-			} finally {
-				setTimeout(() => {
-					uploadState = 'idle';
-				}, 2000);
-			}
-		}
-	}
-
-	function ondragover(e: DragEvent) {
-		e.preventDefault();
-		e.stopPropagation();
-		dragging = true;
-	}
-
-	function ondragleave(e: DragEvent) {
-		e.preventDefault();
-		e.stopPropagation();
-		dragging = false;
 	}
 
 	onMount(() => {
@@ -183,19 +144,9 @@
 {/snippet}
 
 <div class="relative w-full px-5">
-	<label
-		for="chat"
-		aria-label="Drop files here"
-		{ondragover}
-		{ondragleave}
-		{ondrop}
-		class={twMerge(
-			'relative flex flex-col items-center rounded-2xl bg-surface1 focus-within:shadow-md focus-within:ring-1 focus-within:ring-blue',
-			dragging && 'bg-blue-100/50 outline-dashed outline-2 outline-blue ring-transparent'
-		)}
+	<div
+		class="relative flex flex-col items-center rounded-2xl bg-surface1 focus-within:shadow-md focus-within:ring-1 focus-within:ring-blue"
 	>
-		<p class="sr-only">Drop files here</p>
-
 		<div class="flex w-full items-center gap-4 p-2">
 			<textarea
 				use:autoHeight
@@ -221,5 +172,5 @@
 				{@render submitButton()}
 			</div>
 		{/if}
-	</label>
+	</div>
 </div>
