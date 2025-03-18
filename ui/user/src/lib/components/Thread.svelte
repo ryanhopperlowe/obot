@@ -117,6 +117,12 @@
 	function onSendCredentials(id: string, credentials: Record<string, string>) {
 		thread?.sendCredentials(id, credentials);
 	}
+
+	async function handleUpload(file: File) {
+		await ChatService.saveFile(project.assistantID, project.id, file, {
+			threadID: id
+		});
+	}
 </script>
 
 <div class="relative h-full w-full max-w-[900px] pb-32">
@@ -192,6 +198,7 @@
 		<div class="absolute inset-x-0 bottom-0 z-20 flex justify-center py-4 md:py-8">
 			<div class="w-full max-w-[1000px]">
 				<Input
+					onUpload={handleUpload}
 					readonly={messages.inProgress}
 					pending={thread?.pending}
 					onAbort={async () => {
