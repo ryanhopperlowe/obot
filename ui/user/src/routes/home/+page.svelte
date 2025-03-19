@@ -224,11 +224,6 @@
 						{/if}
 
 						<div class="relative flex flex-1 items-center gap-2 overflow-hidden">
-							{#if !responsive.isMobile && !leftEnd}
-								<div
-									class="absolute left-0 top-0 z-30 h-full w-16 bg-gradient-to-r from-white dark:from-black"
-								></div>
-							{/if}
 							<div
 								class="featured-card-layout"
 								onscroll={handleFeaturedScroll}
@@ -239,9 +234,14 @@
 								{/each}
 							</div>
 
+							{#if !responsive.isMobile && !leftEnd}
+								<div
+									class="absolute left-0 top-0 z-20 h-full w-16 bg-gradient-to-r from-white dark:from-black"
+								></div>
+							{/if}
 							{#if !responsive.isMobile && !rightEnd}
 								<div
-									class="absolute right-0 top-0 z-30 h-full w-16 bg-gradient-to-l from-white dark:from-black"
+									class="absolute right-0 top-0 z-20 h-full w-16 bg-gradient-to-l from-white dark:from-black"
 								></div>
 							{/if}
 						</div>
