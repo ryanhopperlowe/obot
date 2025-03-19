@@ -200,18 +200,12 @@
 		</a>
 	{/snippet}
 
-	{#snippet scrollMore(direction: 'left' | 'right')}
-		<button
-			class={twMerge(
-				'absolute top-0 z-20 flex h-full items-center justify-center bg-white/20 px-2 hover:bg-white/30',
-				direction === 'left' ? 'left-0' : 'right-0'
-			)}
-			onclick={() => scrollFeatured(direction)}
-		>
+	{#snippet scrollMore(direction: 'left' | 'right', disabled?: boolean)}
+		<button class="icon-button" onclick={() => scrollFeatured(direction)} {disabled}>
 			{#if direction === 'left'}
-				<ChevronLeft class="z-20 size-12" />
+				<ChevronLeft class="min-w-fit" />
 			{:else}
-				<ChevronRight class="size-12" />
+				<ChevronRight class="min-w-fit" />
 			{/if}
 		</button>
 	{/snippet}
@@ -223,23 +217,32 @@
 			{#if featured.length > 0}
 				<div class="flex w-full flex-col gap-4 px-4 md:px-12">
 					<h3 class="text-2xl font-semibold">Featured</h3>
-					<div class="relative">
-						<div
-							class="featured-card-layout"
-							onscroll={handleFeaturedScroll}
-							bind:this={featuredContainer}
-						>
-							{#each featured as featuredShare}
-								{@render projectCard(featuredShare, true)}
-							{/each}
-						</div>
+					<div class="flex items-center gap-2">
+						{@render scrollMore('left', leftEnd)}
 
-						{#if !leftEnd}
-							{@render scrollMore('left')}
-						{/if}
-						{#if !rightEnd}
-							{@render scrollMore('right')}
-						{/if}
+						<div class=" relative flex max-w-full items-center gap-2">
+							{#if !leftEnd}
+								<div
+									class="absolute left-0 top-0 z-30 h-full w-16 bg-gradient-to-r from-white dark:from-black"
+								></div>
+							{/if}
+							<div
+								class="featured-card-layout"
+								onscroll={handleFeaturedScroll}
+								bind:this={featuredContainer}
+							>
+								{#each featured as featuredShare, i}
+									{@render projectCard(featuredShare, true)}
+								{/each}
+							</div>
+
+							{#if !rightEnd}
+								<div
+									class="absolute right-0 top-0 z-30 h-full w-16 bg-gradient-to-l from-white dark:from-black"
+								></div>
+							{/if}
+						</div>
+						{@render scrollMore('right', rightEnd)}
 					</div>
 				</div>
 			{/if}
