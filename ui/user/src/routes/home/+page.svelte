@@ -151,7 +151,8 @@
 			data-sveltekit-preload-data={'publicID' in project ? 'off' : 'hover'}
 			class={twMerge(
 				'card relative z-20 flex-col overflow-hidden shadow-md',
-				featured && 'min-w-96 snap-center '
+				featured && 'snap-center',
+				featured && (!responsive.isMobile ? 'min-w-96' : 'min-w-48')
 			)}
 		>
 			<div class="absolute left-0 top-0 z-30 flex w-full items-center justify-end p-2">
@@ -216,12 +217,14 @@
 		<div class="mt-8 flex w-full flex-col gap-8">
 			{#if featured.length > 0}
 				<div class="flex w-full flex-col gap-4 px-4 md:px-12">
-					<h3 class="text-2xl font-semibold">Featured</h3>
-					<div class="flex items-center gap-2">
-						{@render scrollMore('left', leftEnd)}
+					<h3 class="w-full text-2xl font-semibold">Featured</h3>
+					<div class="flex w-full max-w-full items-center gap-2">
+						{#if !responsive.isMobile}
+							{@render scrollMore('left', leftEnd)}
+						{/if}
 
-						<div class=" relative flex max-w-full items-center gap-2">
-							{#if !leftEnd}
+						<div class="relative flex flex-1 items-center gap-2 overflow-hidden">
+							{#if !responsive.isMobile && !leftEnd}
 								<div
 									class="absolute left-0 top-0 z-30 h-full w-16 bg-gradient-to-r from-white dark:from-black"
 								></div>
@@ -236,13 +239,16 @@
 								{/each}
 							</div>
 
-							{#if !rightEnd}
+							{#if !responsive.isMobile && !rightEnd}
 								<div
 									class="absolute right-0 top-0 z-30 h-full w-16 bg-gradient-to-l from-white dark:from-black"
 								></div>
 							{/if}
 						</div>
-						{@render scrollMore('right', rightEnd)}
+
+						{#if !responsive.isMobile}
+							{@render scrollMore('right', rightEnd)}
+						{/if}
 					</div>
 				</div>
 			{/if}
