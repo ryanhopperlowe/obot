@@ -20,8 +20,6 @@ export const dragstate = () => {
 			// Only set dragging to false if the mouse is outside the container
 			if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
 				dragging = false;
-			} else {
-				console.log('isover');
 			}
 		};
 
